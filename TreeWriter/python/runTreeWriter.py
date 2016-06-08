@@ -13,7 +13,7 @@ process.source = cms.Source ("PoolSource",fileNames = cms.untracked.vstring(
 ))
 process.TFileService = cms.Service("TFileService",fileName = cms.string("gjet.root"))
 
-if True:
+if False:
     process.source.fileNames = [ "root://xrootd-cms.infn.it//store/mc/RunIISpring16MiniAODv1/QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8/MINIAODSIM/PUSpring16_magnetOn_80X_mcRun2_asymptotic_2016_v3-v1/60000/968DC4DC-4F0D-E611-8E0F-0025905C2C86.root" ]
     process.TFileService.fileName = "qcd.root"
 
