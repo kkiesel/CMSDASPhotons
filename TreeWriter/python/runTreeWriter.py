@@ -1,5 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 
+# dataset=/GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8/RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/MINIAODSIM
+inFileName = ["/store/mc/RunIISpring16MiniAODv2/GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8/MINIAODSIM/PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/00000/0A2F6C5E-4F4C-E611-9645-0022195E1D88.root"]
+outFileName = "gjets.root"
 
 process = cms.Process("TreeWriter")
 process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True) )
@@ -7,15 +10,9 @@ process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
-process.source = cms.Source ("PoolSource",fileNames = cms.untracked.vstring(
-    "root://xrootd-cms.infn.it//store/mc/RunIISpring16MiniAODv1/GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8/MINIAODSIM/PUSpring16_80X_mcRun2_asymptotic_2016_v3-v1/00000/02ED80EA-5012-E611-BC71-842B2B76670F.root"
-))
-process.TFileService = cms.Service("TFileService",fileName = cms.string("gjet.root"))
-
-if False:
-    process.source.fileNames = [ "root://xrootd-cms.infn.it//store/mc/RunIISpring16MiniAODv1/QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8/MINIAODSIM/PUSpring16_magnetOn_80X_mcRun2_asymptotic_2016_v3-v1/60000/968DC4DC-4F0D-E611-8E0F-0025905C2C86.root" ]
-    process.TFileService.fileName = "qcd.root"
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.source = cms.Source ("PoolSource",fileNames = cms.untracked.vstring(inFileName))
+process.TFileService = cms.Service("TFileService",fileName = cms.string(outFileName))
 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
@@ -56,6 +53,7 @@ process.TreeWriter = cms.EDAnalyzer('TreeWriter',
     photonTightIdMap = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-tight"),
     photonMvaValuesMap = cms.InputTag("photonMVAValueMapProducer:PhotonMVAEstimatorRun2Spring15NonTrig25nsV2Values"),
 )
+
 
 process.p = cms.Path(
     process.photonIDValueMapProducer

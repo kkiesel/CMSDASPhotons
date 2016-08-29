@@ -49,15 +49,16 @@ class TreeWriter : public edm::EDAnalyzer {
    virtual void endJob() override {};
    virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
 
-   edm::EDGetTokenT<edm::View<pat::Photon> >   photonCollectionToken_;
-   edm::EDGetTokenT<edm::View<reco::GenParticle> > prunedGenToken_;
+   edm::EDGetTokenT<edm::View<pat::Photon>> photonCollectionToken_;
+   edm::EDGetTokenT<edm::View<reco::GenParticle>> prunedGenToken_;
 
    // photon id
-   edm::EDGetTokenT<edm::ValueMap<bool> > photonLooseIdMapToken_;
-   edm::EDGetTokenT<edm::ValueMap<bool> > photonMediumIdMapToken_;
-   edm::EDGetTokenT<edm::ValueMap<bool> > photonTightIdMapToken_;
+   edm::EDGetTokenT<edm::ValueMap<bool>> photonLooseIdMapToken_;
+   edm::EDGetTokenT<edm::ValueMap<bool>> photonMediumIdMapToken_;
+   edm::EDGetTokenT<edm::ValueMap<bool>> photonTightIdMapToken_;
    edm::EDGetTokenT<edm::ValueMap<float>> photonMvaValuesMapToken_;
    edm::EDGetTokenT<edm::ValueMap<vid::CutFlowResult>> phoLooseIdFullInfoMapToken_;
+
 
    TTree *eventTree_;
    float pt;
@@ -80,13 +81,13 @@ class TreeWriter : public edm::EDAnalyzer {
 
 
 TreeWriter::TreeWriter(const edm::ParameterSet& iConfig)
-   : photonCollectionToken_  (consumes<edm::View<pat::Photon> >(iConfig.getParameter<edm::InputTag>("photons")))
-   , prunedGenToken_         (consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("prunedGenParticles")))
-   , photonLooseIdMapToken_  (consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("photonLooseIdMap"  )))
-   , photonMediumIdMapToken_ (consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("photonMediumIdMap" )))
-   , photonTightIdMapToken_  (consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("photonTightIdMap"  )))
-   , photonMvaValuesMapToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("photonMvaValuesMap")))
-   , phoLooseIdFullInfoMapToken_(consumes<edm::ValueMap<vid::CutFlowResult> >(iConfig.getParameter<edm::InputTag>("photonLooseIdMap" )))
+   : photonCollectionToken_     (consumes<edm::View<pat::Photon>>(iConfig.getParameter<edm::InputTag>("photons")))
+   , prunedGenToken_            (consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("prunedGenParticles")))
+   , photonLooseIdMapToken_     (consumes<edm::ValueMap<bool>>(iConfig.getParameter<edm::InputTag>("photonLooseIdMap")))
+   , photonMediumIdMapToken_    (consumes<edm::ValueMap<bool>>(iConfig.getParameter<edm::InputTag>("photonMediumIdMap")))
+   , photonTightIdMapToken_     (consumes<edm::ValueMap<bool>>(iConfig.getParameter<edm::InputTag>("photonTightIdMap")))
+   , photonMvaValuesMapToken_   (consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("photonMvaValuesMap")))
+   , phoLooseIdFullInfoMapToken_(consumes<edm::ValueMap<vid::CutFlowResult>>(iConfig.getParameter<edm::InputTag>("photonLooseIdMap" )))
 {
    eventTree_ = fs_->make<TTree> ("eventTree", "event data");
    eventTree_->Branch("pt", &pt);
@@ -98,42 +99,40 @@ TreeWriter::TreeWriter(const edm::ParameterSet& iConfig)
    eventTree_->Branch("nIso", &nIso);
    eventTree_->Branch("pIso", &pIso);
    eventTree_->Branch("mvaValue", &mvaValue);
-   eventTree_->Branch("isTrue", &isTrue, "isTrue/O");
    eventTree_->Branch("isLoose", &isLoose);
    eventTree_->Branch("isMedium", &isMedium);
    eventTree_->Branch("isTight", &isTight);
    eventTree_->Branch("hasPixelSeed", &hasPixelSeed);
    eventTree_->Branch("passElectronVeto", &passElectronVeto);
+   eventTree_->Branch("isTrue", &isTrue, "isTrue/O");
 }
 
 void
 TreeWriter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    // get gen particles before photons for the truth match
-   edm::Handle<edm::View<reco::GenParticle> > prunedGenParticles;
+   edm::Handle<edm::View<reco::GenParticle>> prunedGenParticles;
    iEvent.getByToken(prunedGenToken_,prunedGenParticles);
 
-   edm::Handle<edm::ValueMap<bool> > loose_id_dec;
-   edm::Handle<edm::ValueMap<bool> > medium_id_dec;
-   edm::Handle<edm::ValueMap<bool> > tight_id_dec;
+   edm::Handle<edm::ValueMap<bool>> loose_id_dec;
+   edm::Handle<edm::ValueMap<bool>> medium_id_dec;
+   edm::Handle<edm::ValueMap<bool>> tight_id_dec;
    edm::Handle<edm::ValueMap<float>> mva_value;
-   edm::Handle<edm::ValueMap<vid::CutFlowResult> > loose_id_cutflow;
-   iEvent.getByToken(photonLooseIdMapToken_  ,loose_id_dec);
-   iEvent.getByToken(photonMediumIdMapToken_ ,medium_id_dec);
-   iEvent.getByToken(photonTightIdMapToken_  ,tight_id_dec);
-   iEvent.getByToken(photonMvaValuesMapToken_,mva_value);
-   iEvent.getByToken(phoLooseIdFullInfoMapToken_,loose_id_cutflow);
+   edm::Handle<edm::ValueMap<vid::CutFlowResult>> loose_id_cutflow;
+   iEvent.getByToken(photonLooseIdMapToken_, loose_id_dec);
+   iEvent.getByToken(photonMediumIdMapToken_, medium_id_dec);
+   iEvent.getByToken(photonTightIdMapToken_, tight_id_dec);
+   iEvent.getByToken(photonMvaValuesMapToken_, mva_value);
+   iEvent.getByToken(phoLooseIdFullInfoMapToken_, loose_id_cutflow);
 
    // photon collection
-   edm::Handle<edm::View<pat::Photon> > photonColl;
+   edm::Handle<edm::View<pat::Photon>> photonColl;
    iEvent.getByToken(photonCollectionToken_, photonColl);
 
-   bool foundCandidate = false;
-   for(edm::View<pat::Photon>::const_iterator pho = photonColl->begin(); pho != photonColl->end(); pho++){
+   for (edm::View<pat::Photon>::const_iterator pho = photonColl->begin(); pho != photonColl->end(); pho++) {
       // some basic selections
-      if( pho->pt() < 15 || pho->hadTowOverEm() > 0.15 )
-         continue;
-      const edm::Ptr<pat::Photon> phoPtr( photonColl, pho - photonColl->begin() );
+      if (pho->pt() < 15 || pho->hadTowOverEm() > 0.15) continue;
+      const edm::Ptr<pat::Photon> phoPtr(photonColl, pho - photonColl->begin());
 
       pt = pho->pt();
       eta = pho->eta();
@@ -148,26 +147,35 @@ TreeWriter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       nIso = cutFlow.getValueCutUpon(5);
       pIso = cutFlow.getValueCutUpon(6);
 
-      mvaValue=(*mva_value)[phoPtr];
-      isLoose = (*loose_id_dec) [phoPtr];
-      isMedium= (*medium_id_dec)[phoPtr];
-      isTight = (*tight_id_dec) [phoPtr];
+      mvaValue = (*mva_value)    [phoPtr];
+      isLoose  = (*loose_id_dec) [phoPtr];
+      isMedium = (*medium_id_dec)[phoPtr];
+      isTight  = (*tight_id_dec) [phoPtr];
 
       // mc matching
-      isTrue = false;
+      bool foundPhoton = false;
+      bool vetoPhoton = false;
       for (auto& genP: *prunedGenParticles) {
          if (fabs(genP.pdgId()) == 22
-             && genP.statusFlags().fromHardProcess()
-             && genP.status() == 1
-             && ROOT::Math::VectorUtil::DeltaR(pho->p4(), genP.p4())<0.1) {
-            isTrue = true;
+            && genP.statusFlags().fromHardProcess()
+            && genP.status() == 1
+            && ROOT::Math::VectorUtil::DeltaR(pho->p4(), genP.p4())<0.1) {
+            foundPhoton = true;
+         } else if (fabs(genP.pdgId()) == 22
+            && ROOT::Math::VectorUtil::DeltaR(pho->p4(), genP.p4())<0.4) {
+            vetoPhoton = true;
          }
       }
+      if (foundPhoton) {
+         isTrue = true;
+         eventTree_->Fill();
+      }
+      if (!vetoPhoton) {
+         isTrue = false;
+         eventTree_->Fill();
+      }
 
-      if (isTrue) break;
-      foundCandidate = true;
    }
-   if (foundCandidate) eventTree_->Fill();
 }
 
 void

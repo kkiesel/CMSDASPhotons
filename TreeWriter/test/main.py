@@ -41,10 +41,10 @@ def readTree(filename, treename="TreeWriter/eventTree"):
     tree.AddFile(filename)
     return tree
 
-gjetTree = readTree("../gjet.root")
-qcdTree = readTree("../qcd.root")
+tree = readTree("../gjets.root")
 
 cut = "hOverE<0.05"
+
 
 histograms = [
     ("r9", 100, 0, 1),
@@ -53,8 +53,8 @@ histograms = [
 
 
 for var, nBins, xmin, xmax in histograms:
-    h1 = createHistoFromTree(gjetTree, var, cut, nBins, xmin, xmax)
-    h2 = createHistoFromTree(qcdTree, var, cut, nBins, xmin, xmax)
+    h1 = createHistoFromTree(tree, var, cut+"&& isTrue", nBins, xmin, xmax)
+    h2 = createHistoFromTree(tree, var, cut+"&&!isTrue", nBins, xmin, xmax)
 
     h1.SetLineColor(1)
     h2.SetLineColor(2)
