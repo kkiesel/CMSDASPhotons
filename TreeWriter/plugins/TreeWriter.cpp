@@ -35,7 +35,7 @@
 #include "TTree.h"
 #include "Math/VectorUtil.h"
 #include "TMath.h"
-
+#include "DataFormats/PatCandidates/interface/Electron.h"
 
 class TreeWriter : public edm::EDAnalyzer {
  public:
@@ -50,6 +50,7 @@ class TreeWriter : public edm::EDAnalyzer {
    virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
 
    edm::EDGetTokenT<edm::View<pat::Photon>> photonCollectionToken_;
+   edm::EDGetTokenT<edm::View<pat::Electron> > electronCollectionToken_;
    edm::EDGetTokenT<edm::View<reco::GenParticle>> prunedGenToken_;
 
    // photon id
@@ -58,6 +59,12 @@ class TreeWriter : public edm::EDAnalyzer {
    edm::EDGetTokenT<edm::ValueMap<bool>> photonTightIdMapToken_;
    edm::EDGetTokenT<edm::ValueMap<float>> photonMvaValuesMapToken_;
    edm::EDGetTokenT<edm::ValueMap<vid::CutFlowResult>> phoLooseIdFullInfoMapToken_;
+
+   // electron id
+   edm::EDGetTokenT<edm::ValueMap<bool>> electronVetoIdMapToken_;
+   edm::EDGetTokenT<edm::ValueMap<bool>> electronLooseIdMapToken_;
+   edm::EDGetTokenT<edm::ValueMap<bool>> electronMediumIdMapToken_;
+   edm::EDGetTokenT<edm::ValueMap<bool>> electronTightIdMapToken_;
 
 
    TTree *eventTree_;
@@ -82,12 +89,17 @@ class TreeWriter : public edm::EDAnalyzer {
 
 TreeWriter::TreeWriter(const edm::ParameterSet& iConfig)
    : photonCollectionToken_     (consumes<edm::View<pat::Photon>>(iConfig.getParameter<edm::InputTag>("photons")))
+   , electronCollectionToken_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("electrons")))
    , prunedGenToken_            (consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("prunedGenParticles")))
    , photonLooseIdMapToken_     (consumes<edm::ValueMap<bool>>(iConfig.getParameter<edm::InputTag>("photonLooseIdMap")))
    , photonMediumIdMapToken_    (consumes<edm::ValueMap<bool>>(iConfig.getParameter<edm::InputTag>("photonMediumIdMap")))
    , photonTightIdMapToken_     (consumes<edm::ValueMap<bool>>(iConfig.getParameter<edm::InputTag>("photonTightIdMap")))
    , photonMvaValuesMapToken_   (consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("photonMvaValuesMap")))
    , phoLooseIdFullInfoMapToken_(consumes<edm::ValueMap<vid::CutFlowResult>>(iConfig.getParameter<edm::InputTag>("photonLooseIdMap" )))
+   , electronVetoIdMapToken_    (consumes<edm::ValueMap<bool>>(iConfig.getParameter<edm::InputTag>("electronVetoIdMap")))
+   , electronLooseIdMapToken_   (consumes<edm::ValueMap<bool>>(iConfig.getParameter<edm::InputTag>("electronLooseIdMap")))
+   , electronMediumIdMapToken_  (consumes<edm::ValueMap<bool>>(iConfig.getParameter<edm::InputTag>("electronMediumIdMap")))
+   , electronTightIdMapToken_   (consumes<edm::ValueMap<bool>>(iConfig.getParameter<edm::InputTag>("electronTightIdMap")))
 {
    eventTree_ = fs_->make<TTree> ("eventTree", "event data");
    eventTree_->Branch("pt", &pt);
@@ -175,6 +187,25 @@ TreeWriter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
          eventTree_->Fill();
       }
 
+   }
+
+   // Get the electron ID data from the event stream
+   edm::Handle<edm::ValueMap<bool>> veto_id_decisions;
+   edm::Handle<edm::ValueMap<bool>> loose_id_decisions;
+   edm::Handle<edm::ValueMap<bool>> medium_id_decisions;
+   edm::Handle<edm::ValueMap<bool>> tight_id_decisions;
+   iEvent.getByToken(electronVetoIdMapToken_, veto_id_decisions);
+   iEvent.getByToken(electronLooseIdMapToken_, loose_id_decisions);
+   iEvent.getByToken(electronMediumIdMapToken_, medium_id_decisions);
+   iEvent.getByToken(electronTightIdMapToken_, tight_id_decisions);
+
+   edm::Handle<edm::View<pat::Electron>> electronColl;
+   iEvent.getByToken(electronCollectionToken_, electronColl);
+
+   for (edm::View<pat::Electron>::const_iterator el = electronColl->begin();el != electronColl->end(); el++) {
+      const edm::Ptr<pat::Electron> elPtr (electronColl, el - electronColl->begin() );
+      bool isLoose = (*loose_id_decisions) [elPtr];
+      if (isLoose && false ) std::cout << el->pt() << std::endl;
    }
 }
 
