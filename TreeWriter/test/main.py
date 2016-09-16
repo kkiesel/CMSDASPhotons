@@ -59,6 +59,34 @@ def reweightPtEta(tree):
         weightTree.Fill()
     tree.AddFriend(weightTree)
 
+def drawROC(tree, commonCut="1", cuts=[]):
+    """Draw the reciver operating characteristics for the mva identification and draws marker for own selections"""
+    c = ROOT.TCanvas()
+    # Create ROC curve for MVA
+    nBins = 100000
+    h1 = createHistoFromTree(tree, "mvaValue", "weight*( isTrue && {})".format(commonCut), nBins, -1, 1).GetCumulative(False)
+    h2 = createHistoFromTree(tree, "mvaValue", "weight*(!isTrue && {})".format(commonCut), nBins, -1, 1).GetCumulative(False)
+    gr = ROOT.TGraph(nBins)
+    gr.SetTitle(";Signal efficiency;Background rejection")
+    for bin in range(1, nBins+1):
+        s = h1.GetBinContent(bin)/h1.GetBinContent(1)
+        b = h2.GetBinContent(bin)/h2.GetBinContent(1)
+        gr.SetPoint(bin-1, s, 1-b)
+    gr.GetXaxis().SetRangeUser(0,1)
+    gr.GetYaxis().SetRangeUser(0,1)
+    gr.Draw()
+    # For each marker, add a point
+    markers = [] # save markers so pyroot won't overwrite them
+    for icut, cut in enumerate(cuts):
+        h1 = createHistoFromTree(tree, cut, "weight*( isTrue && {})".format(commonCut), 2, 0, 2)
+        h2 = createHistoFromTree(tree, cut, "weight*(!isTrue && {})".format(commonCut), 2, 0, 2)
+        s = h1.GetBinContent(2)/h1.Integral()
+        b = h2.GetBinContent(2)/h2.Integral()
+        m = ROOT.TMarker(s, 1-b, 20+icut)
+        m.Draw()
+        markers.append(m)
+    ROOT.gPad.SaveAs("roc.pdf")
+
 tree = readTree("../gjets.root")
 reweightPtEta(tree)
 
@@ -86,3 +114,4 @@ for var, nBins, xmin, xmax in histograms:
     h2.Draw("hist same")
     ROOT.gPad.SaveAs("{}.pdf".format(var))
 
+drawROC(tree, "pt<70 && abs(eta)<1.5", ["isLoose", "isMedium", "isTight"])
