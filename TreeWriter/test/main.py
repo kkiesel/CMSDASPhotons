@@ -22,9 +22,8 @@ def createHistoFromTree(tree, variable, weight="", nBins=20, firstBin=0, lastBin
     nBins: if nBins is a list, and to a int, a user binned plot will be generated
     returns: histogram
     """
-    from ROOT import TH1F
     name = randomName()
-    result = TH1F(name, variable, nBins, firstBin, lastBin)
+    result = ROOT.TH1F(name, variable, nBins, firstBin, lastBin)
     result.Sumw2()
     tree.Draw("%s>>%s"%(variable, name), weight, "goff")
     return result
@@ -36,7 +35,6 @@ def readTree(filename, treename="TreeWriter/eventTree"):
     treename: name of the tree
     returns: TChain Object
     """
-    import ROOT
     tree = ROOT.TChain(treename)
     tree.AddFile(filename)
     return tree
