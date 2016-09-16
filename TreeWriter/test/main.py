@@ -39,20 +39,42 @@ def readTree(filename, treename="TreeWriter/eventTree"):
     tree.AddFile(filename)
     return tree
 
+def reweightPtEta(tree):
+    num = ROOT.TH2F("num", "", 200, 0, 2000, 30, 0, 3)
+    den = num.Clone("den")
+    tree.Draw("abs(eta):pt>>num", " isTrue", "goff")
+    tree.Draw("abs(eta):pt>>den", "!isTrue", "goff")
+    num.Divide(den)
+
+    weightTree = ROOT.TTree("weightTree", "")
+    import numpy
+    weight = numpy.zeros(1, dtype=float)
+    weightTree.Branch("weight", weight, "weight/D")
+    for event in tree:
+        if event.isTrue:
+            weight[0] = 1
+        else:
+            b = num.FindBin(event.pt, abs(event.eta))
+            weight[0] = num.GetBinContent(b)
+        weightTree.Fill()
+    tree.AddFriend(weightTree)
+
 tree = readTree("../gjets.root")
+reweightPtEta(tree)
 
 cut = "hOverE<0.05"
 
 
 histograms = [
     ("r9", 100, 0, 1),
-    ("hOverE", 20, 0, 0.15)
+    ("hOverE", 20, 0, 0.15),
+    ("pt", 2000, 0, 2000),
 ]
 
 
 for var, nBins, xmin, xmax in histograms:
-    h1 = createHistoFromTree(tree, var, cut+"&& isTrue", nBins, xmin, xmax)
-    h2 = createHistoFromTree(tree, var, cut+"&&!isTrue", nBins, xmin, xmax)
+    h1 = createHistoFromTree(tree, var, "weight*( isTrue && {})".format(cut), nBins, xmin, xmax)
+    h2 = createHistoFromTree(tree, var, "weight*(!isTrue && {})".format(cut), nBins, xmin, xmax)
 
     h1.SetLineColor(1)
     h2.SetLineColor(2)
