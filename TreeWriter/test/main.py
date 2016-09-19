@@ -75,8 +75,8 @@ for var, nBins, xmin, xmax in histograms:
     h1 = createHistoFromTree(tree, var, "weight*( isTrue && {})".format(cut), nBins, xmin, xmax)
     h2 = createHistoFromTree(tree, var, "weight*(!isTrue && {})".format(cut), nBins, xmin, xmax)
 
-    h1.SetLineColor(1)
-    h2.SetLineColor(2)
+    h1.SetLineColor(ROOT.kBlack)
+    h2.SetLineColor(ROOT.kRed)
 
     for h in h1, h2:
         h.Scale(1./h.Integral())
