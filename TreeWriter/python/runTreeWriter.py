@@ -65,7 +65,7 @@ process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
 process.source = cms.Source ("PoolSource",fileNames = cms.untracked.vstring(inFileName))
 process.TFileService = cms.Service("TFileService",fileName = cms.string(outFileName))
 

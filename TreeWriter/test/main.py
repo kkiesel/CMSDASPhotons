@@ -22,9 +22,8 @@ def createHistoFromTree(tree, variable, weight="", nBins=20, firstBin=0, lastBin
     nBins: if nBins is a list, and to a int, a user binned plot will be generated
     returns: histogram
     """
-    from ROOT import TH1F
     name = randomName()
-    result = TH1F(name, variable, nBins, firstBin, lastBin)
+    result = ROOT.TH1F(name, variable, nBins, firstBin, lastBin)
     result.Sumw2()
     tree.Draw("%s>>%s"%(variable, name), weight, "goff")
     return result
@@ -36,25 +35,46 @@ def readTree(filename, treename="TreeWriter/eventTree"):
     treename: name of the tree
     returns: TChain Object
     """
-    import ROOT
     tree = ROOT.TChain(treename)
     tree.AddFile(filename)
     return tree
 
+def reweightPtEta(tree):
+    num = ROOT.TH2F("num", "", 200, 0, 2000, 30, 0, 3)
+    den = num.Clone("den")
+    tree.Draw("abs(eta):pt>>num", " isTrue", "goff")
+    tree.Draw("abs(eta):pt>>den", "!isTrue", "goff")
+    num.Divide(den)
+
+    weightTree = ROOT.TTree("weightTree", "")
+    import numpy
+    weight = numpy.zeros(1, dtype=float)
+    weightTree.Branch("weight", weight, "weight/D")
+    for event in tree:
+        if event.isTrue:
+            weight[0] = 1
+        else:
+            b = num.FindBin(event.pt, abs(event.eta))
+            weight[0] = num.GetBinContent(b)
+        weightTree.Fill()
+    tree.AddFriend(weightTree)
+
 tree = readTree("../gjets.root")
+reweightPtEta(tree)
 
 cut = "hOverE<0.05"
 
 
 histograms = [
     ("r9", 100, 0, 1),
-    ("hOverE", 20, 0, 0.15)
+    ("hOverE", 20, 0, 0.15),
+    ("pt", 2000, 0, 2000),
 ]
 
 
 for var, nBins, xmin, xmax in histograms:
-    h1 = createHistoFromTree(tree, var, cut+"&& isTrue", nBins, xmin, xmax)
-    h2 = createHistoFromTree(tree, var, cut+"&&!isTrue", nBins, xmin, xmax)
+    h1 = createHistoFromTree(tree, var, "weight*( isTrue && {})".format(cut), nBins, xmin, xmax)
+    h2 = createHistoFromTree(tree, var, "weight*(!isTrue && {})".format(cut), nBins, xmin, xmax)
 
     h1.SetLineColor(1)
     h2.SetLineColor(2)
