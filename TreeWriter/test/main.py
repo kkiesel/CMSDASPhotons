@@ -59,7 +59,7 @@ def reweightPtEta(tree):
     tree.AddFriend(weightTree)
 
 tree = readTree("../gjets.root")
-reweightPtEta(tree)
+#reweightPtEta(tree)
 
 cut = "hOverE<0.05"
 
