@@ -40,22 +40,21 @@ def readTree(filename, treename="TreeWriter/eventTree"):
     return tree
 
 def reweightPtEta(tree):
-    num = ROOT.TH2F("num", "", 200, 0, 2000, 30, 0, 3)
+    num = ROOT.TH2F("num", "", 100, 0, 200, 30, 0, 3)
     den = num.Clone("den")
     tree.Draw("abs(eta):pt>>num", " isTrue", "goff")
     tree.Draw("abs(eta):pt>>den", "!isTrue", "goff")
-    num.Divide(den)
 
     weightTree = ROOT.TTree("weightTree", "")
     import numpy
     weight = numpy.zeros(1, dtype=float)
     weightTree.Branch("weight", weight, "weight/D")
     for event in tree:
+        bin = num.FindBin(event.pt, abs(event.eta))
         if event.isTrue:
-            weight[0] = 1
+            weight[0] = 1./num.GetBinContent(bin)
         else:
-            b = num.FindBin(event.pt, abs(event.eta))
-            weight[0] = num.GetBinContent(b)
+            weight[0] = 1./den.GetBinContent(bin)
         weightTree.Fill()
     tree.AddFriend(weightTree)
 
