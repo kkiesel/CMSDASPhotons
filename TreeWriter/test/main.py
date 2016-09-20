@@ -61,7 +61,6 @@ def reweightPtEta(tree, applyWeight=True):
     tree.AddFriend(weightTree)
 
 tree = readTree("../gjets.root")
-reweightPtEta(tree, True)
 
 cut = "hOverE<0.05"
 
@@ -74,8 +73,8 @@ histograms = [
 
 
 for var, nBins, xmin, xmax in histograms:
-    h1 = createHistoFromTree(tree, var, "weight*( isTrue && {})".format(cut), nBins, xmin, xmax)
-    h2 = createHistoFromTree(tree, var, "weight*(!isTrue && {})".format(cut), nBins, xmin, xmax)
+    h1 = createHistoFromTree(tree, var, " isTrue &&"+cut, nBins, xmin, xmax)
+    h2 = createHistoFromTree(tree, var, "!isTrue &&"+cut, nBins, xmin, xmax)
 
     h1.SetLineColor(ROOT.kBlack)
     h2.SetLineColor(ROOT.kRed)
