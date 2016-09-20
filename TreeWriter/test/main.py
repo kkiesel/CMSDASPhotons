@@ -40,10 +40,11 @@ def readTree(filename, treename="TreeWriter/eventTree"):
     return tree
 
 def reweightPtEta(tree, applyWeight=True):
-    num = ROOT.TH2F("num", "", 100, 0, 200, 30, 0, 3)
+    num = ROOT.TH2F("num", "", 100, 0, 2000, 30, 0, 3)
     den = num.Clone("den")
     tree.Draw("abs(eta):pt>>num", " isTrue", "goff")
     tree.Draw("abs(eta):pt>>den", "!isTrue", "goff")
+    num.Divide(den)
 
     weightTree = ROOT.TTree("weightTree", "")
     import numpy
@@ -52,15 +53,15 @@ def reweightPtEta(tree, applyWeight=True):
     for event in tree:
         bin = num.FindBin(event.pt, abs(event.eta))
         if event.isTrue:
-            weight[0] = 1./num.GetBinContent(bin)
+            weight[0] = 1.
         else:
-            weight[0] = 1./den.GetBinContent(bin)
-        if not applyWeight: wegiht[0] = 1.
+            weight[0] = num.GetBinContent(bin)
+        if not applyWeight: weight[0] = 1.
         weightTree.Fill()
     tree.AddFriend(weightTree)
 
 tree = readTree("../gjets.root")
-reweightPtEta(tree, False)
+reweightPtEta(tree, True)
 
 cut = "hOverE<0.05"
 
@@ -68,7 +69,7 @@ cut = "hOverE<0.05"
 histograms = [
     ("r9", 100, 0, 1),
     ("hOverE", 20, 0, 0.15),
-    ("pt", 2000, 0, 2000),
+    ("pt", 200, 0, 2000),
 ]
 
 
