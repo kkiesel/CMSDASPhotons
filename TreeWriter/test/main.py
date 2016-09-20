@@ -39,7 +39,7 @@ def readTree(filename, treename="TreeWriter/eventTree"):
     tree.AddFile(filename)
     return tree
 
-def reweightPtEta(tree):
+def reweightPtEta(tree, applyWeight=True):
     num = ROOT.TH2F("num", "", 100, 0, 200, 30, 0, 3)
     den = num.Clone("den")
     tree.Draw("abs(eta):pt>>num", " isTrue", "goff")
@@ -55,11 +55,12 @@ def reweightPtEta(tree):
             weight[0] = 1./num.GetBinContent(bin)
         else:
             weight[0] = 1./den.GetBinContent(bin)
+        if not applyWeight: wegiht[0] = 1.
         weightTree.Fill()
     tree.AddFriend(weightTree)
 
 tree = readTree("../gjets.root")
-#reweightPtEta(tree)
+reweightPtEta(tree, False)
 
 cut = "hOverE<0.05"
 
